@@ -11,6 +11,23 @@ const ctx = canvas.getContext('2d');
 
 let image = null;
 let dialogues = [];
+let currentVideoUrl = null;
+
+const MIME_CANDIDATES = [
+  'video/webm;codecs=vp9,opus',
+  'video/webm;codecs=vp8,opus',
+  'video/webm',
+];
+
+function getRecorderMimeType() {
+  if (typeof MediaRecorder === 'undefined') return null;
+  for (const mimeType of MIME_CANDIDATES) {
+    if (MediaRecorder.isTypeSupported(mimeType)) {
+      return mimeType;
+    }
+  }
+  return '';
+}
 
 function drawFrame(currentDialogue = null) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -67,16 +84,20 @@ function wrapText(text, x, y, maxWidth, lineHeight) {
 
 function renderDialogueList() {
   dialogueList.innerHTML = '';
+
   dialogues.forEach((item, index) => {
     const li = document.createElement('li');
     li.innerHTML = `<span>${index + 1}. [${item.language}] ${item.duration}s — ${item.text}</span>`;
+
     const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
     removeBtn.textContent = 'Remove';
     removeBtn.addEventListener('click', () => {
       dialogues = dialogues.filter((_, i) => i !== index);
       renderDialogueList();
       drawFrame();
     });
+
     li.appendChild(removeBtn);
     dialogueList.appendChild(li);
   });
@@ -84,9 +105,18 @@ function renderDialogueList() {
 
 function speakDialogue(dialogue) {
   return new Promise((resolve) => {
+    if (!('speechSynthesis' in window)) {
+      setTimeout(resolve, dialogue.duration * 1000);
+      return;
+    }
+
     const utterance = new SpeechSynthesisUtterance(dialogue.text);
     utterance.lang = dialogue.language;
     utterance.rate = 1;
+
+    const voices = speechSynthesis.getVoices();
+    const matchingVoice = voices.find((voice) => voice.lang === dialogue.language);
+    if (matchingVoice) utterance.voice = matchingVoice;
 
     let done = false;
     const finish = () => {
@@ -99,6 +129,7 @@ function speakDialogue(dialogue) {
     utterance.onend = finish;
     utterance.onerror = finish;
 
+    speechSynthesis.cancel();
     speechSynthesis.speak(utterance);
 
     setTimeout(() => {
@@ -113,8 +144,15 @@ async function createVideo() {
     alert('Please upload an image first.');
     return;
   }
+
   if (!dialogues.length) {
     alert('Please add at least one dialogue.');
+    return;
+  }
+
+  const mimeType = getRecorderMimeType();
+  if (mimeType === null) {
+    alert('MediaRecorder is not available in this browser.');
     return;
   }
 
@@ -122,28 +160,30 @@ async function createVideo() {
   generateBtn.disabled = true;
   generateBtn.textContent = 'Generating...';
 
+  if (currentVideoUrl) {
+    URL.revokeObjectURL(currentVideoUrl);
+    currentVideoUrl = null;
+  }
+
   const videoStream = canvas.captureStream(30);
   const audioCtx = new AudioContext();
   const dest = audioCtx.createMediaStreamDestination();
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
+
   gain.gain.value = 0.0001;
   osc.connect(gain).connect(dest);
   osc.start();
 
-  const speechCapture = dest.stream;
   const merged = new MediaStream([
     ...videoStream.getVideoTracks(),
-    ...speechCapture.getAudioTracks(),
+    ...dest.stream.getAudioTracks(),
   ]);
 
   const chunks = [];
-  const recorder = new MediaRecorder(merged, {
-    mimeType: 'video/webm;codecs=vp9,opus',
-  });
-
+  const recorder = new MediaRecorder(merged, mimeType ? { mimeType } : undefined);
   recorder.ondataavailable = (e) => {
-    if (e.data.size) chunks.push(e.data);
+    if (e.data.size > 0) chunks.push(e.data);
   };
 
   recorder.start(200);
@@ -151,32 +191,33 @@ async function createVideo() {
   for (const dialogue of dialogues) {
     drawFrame(dialogue);
     await speakDialogue(dialogue);
-    await new Promise((r) => setTimeout(r, 250));
+    await new Promise((resolve) => setTimeout(resolve, 150));
   }
 
   drawFrame();
-  await new Promise((r) => setTimeout(r, 600));
+  await new Promise((resolve) => setTimeout(resolve, 400));
 
   await new Promise((resolve) => {
     recorder.onstop = resolve;
     recorder.stop();
   });
 
+  speechSynthesis.cancel();
   osc.stop();
-  videoStream.getTracks().forEach((track) => track.stop());
-  speechCapture.getTracks().forEach((track) => track.stop());
+  audioCtx.close();
+  merged.getTracks().forEach((track) => track.stop());
 
-  const blob = new Blob(chunks, { type: 'video/webm' });
-  const url = URL.createObjectURL(blob);
-  downloadLink.href = url;
+  const blob = new Blob(chunks, { type: mimeType || 'video/webm' });
+  currentVideoUrl = URL.createObjectURL(blob);
+
+  downloadLink.href = currentVideoUrl;
   downloadLink.classList.remove('hidden');
-
   generateBtn.disabled = false;
   generateBtn.textContent = 'Generate .webm video';
 }
 
 imageInput.addEventListener('change', (e) => {
-  const file = e.target.files[0];
+  const [file] = e.target.files;
   if (!file) return;
 
   const reader = new FileReader();
