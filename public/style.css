@@ -1,0 +1,99 @@
+:root {
+  color-scheme: light dark;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 1rem;
+  background: #111827;
+}
+
+h1, h2, p {
+  margin-top: 0;
+}
+
+.row {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: 140px 110px 1fr 120px;
+}
+
+input, select, button, a {
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #475569;
+  background: #0b1220;
+  color: inherit;
+}
+
+button, a {
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+}
+
+#dialogueList {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+#dialogueList li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #334155;
+  border-radius: 8px;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.preview-wrap {
+  border: 1px solid #334155;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+#preview {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: black;
+}
+
+.hidden {
+  display: none;
+}
+
+.hint {
+  opacity: 0.85;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 720px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}
