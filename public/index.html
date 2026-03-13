@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YouTube Live Video Uploader Helper</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>YouTube Live Video Streamer</h1>
+      <p class="subtitle">
+        Works on phones, tablets, laptops, and Chromebooks through any modern browser.
+      </p>
+
+      <section class="card" aria-labelledby="stream-setup-title">
+        <h2 id="stream-setup-title">Setup your stream</h2>
+
+        <label for="stream-key">YouTube stream key</label>
+        <input id="stream-key" type="password" placeholder="Paste your YouTube live stream key" />
+
+        <label for="video-file">Choose video to upload/stream</label>
+        <input id="video-file" type="file" accept="video/*" />
+
+        <button id="build-command" type="button">Generate FFmpeg command</button>
+      </section>
+
+      <section class="card" aria-live="polite">
+        <h2>Stream command</h2>
+        <p>Use this command on a machine with FFmpeg to send your uploaded video to YouTube Live.</p>
+        <pre id="command-output">Select a video and stream key to generate your command.</pre>
+      </section>
+
+      <section class="card">
+        <h2>Device compatibility checklist</h2>
+        <ul>
+          <li>Responsive layout for all screen sizes</li>
+          <li>No app install required (browser-based)</li>
+          <li>Works on ChromeOS/Chromebook with Chrome browser</li>
+          <li>Supports touch and keyboard interaction</li>
+        </ul>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
