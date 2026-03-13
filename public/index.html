@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flow Studio - Image to Dialogue Video</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>Flow Studio</h1>
+        <p>Create dialogue videos from one image in Hindi + English (Chromebook-friendly).</p>
+      </header>
+
+      <section class="card">
+        <h2>1) Upload image</h2>
+        <input type="file" id="imageInput" accept="image/*" />
+      </section>
+
+      <section class="card">
+        <h2>2) Add dialogues</h2>
+        <form id="dialogueForm" class="row">
+          <select id="language">
+            <option value="en-US">English</option>
+            <option value="hi-IN">Hindi</option>
+          </select>
+          <input type="number" id="duration" min="1" max="20" value="4" />
+          <input type="text" id="text" placeholder="Type dialogue..." required />
+          <button type="submit">Add</button>
+        </form>
+        <ul id="dialogueList"></ul>
+      </section>
+
+      <section class="card">
+        <h2>3) Generate video</h2>
+        <div class="actions">
+          <button id="generateBtn">Generate .webm video</button>
+          <a id="downloadLink" class="hidden" download="flow-video.webm">Download video</a>
+        </div>
+        <p class="hint">Tip: Hindi speech depends on installed Chromebook voices. If unavailable, text captions still render.</p>
+      </section>
+
+      <section class="preview-wrap">
+        <canvas id="preview" width="1280" height="720"></canvas>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
